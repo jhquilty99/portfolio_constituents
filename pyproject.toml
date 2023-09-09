@@ -1,0 +1,22 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "etf_constituents"
+version = "0.1"
+authors = [
+  { name="Hayden Quilty", email="jhquilty99@gmail.com" },
+]
+description = "A package to collect the consituents for a portfolio of ETFs"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
