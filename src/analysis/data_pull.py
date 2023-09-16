@@ -42,11 +42,10 @@ def scrape_security_data(keys):
         #table = soup.find(id='dataTables_scroll')
         script_text = soup.find('script', string=re.compile('etf_holdings.formatted_data'))
         script_text = str(script_text)
-        print(script_text)
+        #print(script_text)
         json_text = re.search('\[.*?\] ]', script_text)
         data = pd.read_json(json_text.group())
-        #data['clean_name'] = data.apply(lambda x: get_title(str(x[0])), axis = 1)
-        data['clean_name'] = data[0]
+        data['clean_name'] = data[0].apply(get_title)
         data['weight'] = data.apply(lambda x: weight_to_float(x[3]), axis = 1)
         data['etf'] = key
         df = pd.concat([data[['clean_name','weight','etf']],df])
@@ -70,9 +69,22 @@ def get_portfolio_prop(portfolio):
     data = get_current_prices(list(portfolio.keys()))
     return(get_prop_value(portfolio, data))
 
-# Multiply prop of each ETF by the weight, then group by to sum up by constituent
-def get_constituent_weights(consituents_df, ticker_proportions):
-    consituents_df['portfolio_weight'] = consituents_df.apply(lambda x: ticker_proportions[x['etf']], axis = 1)
-    consituents_df['total_weight'] = consituents_df['weight'] * consituents_df['portfolio_weight']
-    consituents_df = consituents_df[['clean_name','portfolio_weight']]
-    return(consituents_df.groupby(['clean_name']).sum().sort_values('portfolio_weight', ascending = False))
+# def aggregate_weights(consituents_df, ticker_props):
+#     consituents_df['portfolio_weight'] = consituents_df['etf'].apply(lambda x: ticker_props[x])
+#     consituents_df['total_weight'] = consituents_df['weight'] * consituents_df['portfolio_weight']
+#     return(consituents_df[['clean_name','portfolio_weight']])
+
+# # Multiply prop of each ETF by the weight, then group by to sum up by constituent
+# def get_constituent_weights(consituents_df, ticker_props):
+#     df = aggregate_weights(consituents_df, ticker_props)
+#     df = get_prop_value()
+#     return(df.groupby(['clean_name']).sum().sort_values('portfolio_weight', ascending = False))
+
+def get_constituent_weights(constituents, proportions):
+    # Multiply the weight of each constituent by the proportion of its ETF
+    constituents['adjusted_weight'] = constituents.apply(lambda row: row['weight'] * proportions[row['etf']], axis=1)
+    
+    # Group by 'clean_name' and sum the 'adjusted_weight' to get the total weight for each constituent
+    result = constituents.groupby('clean_name')['adjusted_weight'].sum()
+    total = result.sum()
+    return (result/total)

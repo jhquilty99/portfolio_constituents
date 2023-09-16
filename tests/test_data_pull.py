@@ -60,9 +60,29 @@ class TestClass:
         assert len(edv_data) >= 50000
 
     def test_scrape_security_data(self):
-        qqq_data = data_pull.scrape_security_data(['QQQ']) 
-        assert qqq_data.shape[0] >= 100
-        assert qqq_data.shape[1] == 3
+        data_1 = data_pull.scrape_security_data(['QQQ']) 
+        data_2 = data_pull.scrape_security_data(['QQQ','VGT']) 
+        data_3 = data_pull.scrape_security_data(['QQQ','VGT','VTI']) 
+        assert data_1.shape[0] >= 100
+        assert data_1.shape[1] == 3
+        assert set(data_1.columns) == set(['clean_name','weight','etf'])
+        assert set(data_1['etf'].unique()) == set(['QQQ'])
+        assert data_1['weight'].sum() == pytest.approx(100, 0.1)
+        for i in data_1['clean_name']: assert '<' not in i
+        
+        assert data_2.shape[0] >= 400
+        assert data_2.shape[1] == 3
+        assert set(data_2.columns) == set(['clean_name','weight','etf'])
+        assert set(data_2['etf'].unique()) == set(['QQQ','VGT'])
+        assert data_2['weight'].sum() == pytest.approx(200, 0.1)
+        for i in data_2['clean_name']: assert '<' not in i
+        
+        assert data_3.shape[0] >= 500
+        assert data_3.shape[1] == 3
+        assert set(data_3.columns) == set(['clean_name','weight','etf'])
+        assert set(data_3['etf'].unique()) == set(['QQQ','VGT','VTI'])
+        assert data_3['weight'].sum() == pytest.approx(300, 0.1)
+        for i in data_3['clean_name']: assert '<' not in i
 
     def test_get_current_prices(self):
         single_df = data_pull.get_current_prices(['VGT'])
@@ -110,8 +130,43 @@ class TestClass:
         pd.testing.assert_series_equal(prop_3, test_3)
         pd.testing.assert_series_equal(prop_4, test_4)
 
-    #def test_get_prop_of_each_etf(self):
-    #    assert 
+    def test_get_portfolio_prop(self):
+        prop_1 = data_pull.get_portfolio_prop(self.portfolio_1)
+        prop_2 = data_pull.get_portfolio_prop(self.portfolio_2)
+        prop_3 = data_pull.get_portfolio_prop(self.portfolio_3)
+        assert type(prop_1) == pd.Series
+        assert type(prop_2) == pd.Series
+        assert type(prop_3) == pd.Series
+        assert prop_1.shape[0] == 1
+        assert prop_2.shape[0] == 2
+        assert prop_3.shape[0] == 2
+        assert type(prop_1[0]) == np.float64
+        assert type(prop_2[0]) == np.float64
+        assert type(prop_3[0]) == np.float64
+        assert prop_1[0] != prop_2[0]
+        assert prop_3[0] != prop_2[0]
+        assert prop_1[0] != prop_3[0]
+        assert set(prop_1.index) == set(['VTI'])
+        assert set(prop_2.index) == set(['VTI','EDV'])
+        assert set(prop_3.index) == set(['VTI','EDV'])
 
-    #def test_get_constituent_weights(self):
-    #    assert 
+    def test_get_constituent_weights(self):
+        prop_1 = pd.Series([1.0], index = ['VTI'])
+        prop_2 = pd.Series([0.5, 0.5], index = ['VTI','EDV'])
+        prop_3 = pd.Series([0.95, 0.05], index = ['VTI','EDV'])
+        const_1 = pd.DataFrame({
+            'clean_name': ['A','B','C'],
+            'weight':[60,30,10],
+            'etf':['VTI','VTI','VTI']
+        })
+        const_2 = pd.DataFrame({
+            'clean_name': ['A','B','C','A','D','E'],
+            'weight':[60,30,10,60,30,10],
+            'etf':['VTI','VTI','VTI','EDV','EDV','EDV']
+        })
+        test_1 = pd.Series([0.6,0.3,0.1], index=['A','B','C'], name='adjusted_weight')
+        test_2 = pd.Series([0.6,0.15,0.05,0.15,0.05], index=['A','B','C','D','E'], name='adjusted_weight')
+        test_3 = pd.Series([0.6,0.285,0.095,0.015,0.005], index=['A','B','C','D','E'], name='adjusted_weight')
+        pd.testing.assert_series_equal(test_1, data_pull.get_constituent_weights(const_1, prop_1), check_like=True, check_names=False)
+        pd.testing.assert_series_equal(test_2, data_pull.get_constituent_weights(const_2, prop_2), check_like=True, check_names=False)
+        pd.testing.assert_series_equal(test_3, data_pull.get_constituent_weights(const_2, prop_3), check_like=True, check_names=False)
