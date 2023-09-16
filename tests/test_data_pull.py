@@ -1,7 +1,6 @@
 import pytest
-import data_pull
+import analysis.data_pull as data_pull
 import numpy as np
-import re
 import pandas as pd
 
 class TestClass:

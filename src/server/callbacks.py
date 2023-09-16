@@ -23,12 +23,11 @@ def get_active_tickers(portfolio_deletion):
     Output('add-ticker', "valid"),
     Output('add-ticker', "invalid"),
     Input('portfolio-buffer','data'),
-    Input('distinct-tickers','data'),
     Input('add-ticker','value')
 )
-def dynamic_portfolio_update(portfolio_buffer, distinct_tickers, new_ticker):
-    new_portfolio, true_validation, false_validation = callback_functions.add_ticker(portfolio_buffer, distinct_tickers, new_ticker)
-    return(callback_functions.draw_portfolio_inputs(new_portfolio), true_validation, false_validation)
+def dynamic_portfolio_update(portfolio_buffer, new_ticker):
+    output = callback_functions.add_ticker(portfolio_buffer, new_ticker)
+    return(callback_functions.draw_portfolio_inputs(output[0]), output[1], output[2])
 
 ################# Portfolio State Machine ##############
 # Inputs: Dynamic Increment Inputs

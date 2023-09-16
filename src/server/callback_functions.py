@@ -2,10 +2,7 @@ import pandas as pd
 import yfinance
 from datetime import date
 from datetime import timedelta
-import yaml
 import dash_bootstrap_components as dbc
-from sqlalchemy import create_engine
-from sqlalchemy import text
 import re
 from typing import Tuple, Union, Optional, Dict, List
 from dash import html
@@ -69,25 +66,10 @@ def add_ticker(portfolio_buffer: Optional[Dict[str, int]] = None, new_ticker: Op
         return(portfolio, validation, not validation)
     else:
         return(portfolio, False, False)
-
-def get_range(tickers: List[str], selection: str, last_day: pd.Timestamp) -> Tuple[List[date], int]:
-    dict = {'test':3,'all':0,'one year':365,'three months':92,'one month':31,'ytd':(last_day-date(last_day.year, 1, 1)).days}
-    selection = dict[selection]
-    local_engine = create_engine('sqlite+pysqlite:///assets/financial_website.db')
-    with local_engine.connect() as con:
-        tickers = "'" + "', '".join(tickers) + "'" 
-        earliest_date = con.execute(text(f'SELECT date FROM fact_ticker_data WHERE name IN ({tickers}) ORDER BY date ASC LIMIT 1;')).fetchone()
-    start = last_day - timedelta(days = selection)
-    return([max(start, earliest_date), last_day], selection)    
+ 
 
 def validate_stock(ticker: str) -> bool:
     info = yfinance.Ticker(ticker).history(
         period='7d',
         interval='1d')
     return len(info) > 0
-
-def collect_yaml(file_name: str) -> Dict[str, int]:
-    with open(file_name, 'r') as file:
-        config = yaml.safe_load(file)
-        portfolio = config["portfolio"]
-    return(portfolio)
