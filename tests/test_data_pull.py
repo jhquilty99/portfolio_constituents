@@ -1,5 +1,5 @@
 import pytest
-import analysis.data_pull as data_pull
+import src.analysis.data_pull as data_pull
 import numpy as np
 import pandas as pd
 

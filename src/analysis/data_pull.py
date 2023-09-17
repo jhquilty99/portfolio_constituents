@@ -31,7 +31,7 @@ def get_security_data(key):
     url = 'https://www.zacks.com/funds/etf/{}/holding'
     with requests.Session() as req:
         req.headers.update(headers)
-        return(req.get(url.format(key)).text)
+        return(req.get(url.format(key.upper())).text)
 
     
 def scrape_security_data(keys):
