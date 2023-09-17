@@ -1,8 +1,15 @@
 # Import necessary libraries
 from dash import dcc, html, Dash, dash_table
+import dash_bootstrap_components as dbc
+from flask import Flask
 
-# Initialize the Dash app
-app = Dash(__name__)
+#Instantiates the Dash app and identify the server
+server = Flask(__name__)
+app = Dash(__name__, 
+           server = server, 
+           title='Climate Visualizer', 
+           external_stylesheets=[dbc.themes.COSMO, dbc.icons.BOOTSTRAP], 
+           suppress_callback_exceptions=True)
 
 TOP_STYLE = {
     'border': '1px solid black', 
