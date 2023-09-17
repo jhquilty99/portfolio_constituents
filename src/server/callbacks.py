@@ -1,9 +1,10 @@
 from dash.dependencies import Input, Output, State, ALL, MATCH
 import callback_functions
 from layout import app
-from dash import callback_context
+from dash import callback_context, html
+import pprint
 
-################# Ticker State Machine #################
+""" ################# Ticker State Machine #################
 # Inputs: Dynamic Delete Buttons
 # Outputs: Distinct Tickers
 @app.callback(
@@ -38,7 +39,28 @@ def dynamic_portfolio_update(portfolio_buffer, new_ticker):
     prevent_initial_call=True
 )
 def increment_portfolio(dynamic_ticker_values):
-    return(callback_functions.increment_portfolio(callback_context.inputs_list[0]))
+    return(callback_functions.increment_portfolio(callback_context.inputs_list[0])) """
+
+@app.callback(
+    Output('ticker-table', 'columns'),
+    Input('add-column', 'n_clicks'),
+    State('enter-column', 'value'),
+    State('ticker-table', 'columns'))
+def update_columns(n_clicks, value, existing_columns):
+    if n_clicks > 0:
+        existing_columns.append({
+            'id': value, 'name': '{} Holdings'.format(value),
+            'renamable': True, 'deletable': True
+        })
+    return existing_columns
+
+@app.callback(Output('table-display', 'children'),
+              Input('ticker-table', 'data'))
+def display_output(rows):
+    return html.Div([
+        html.Div('Raw Data'),
+        html.Pre(pprint.pformat(rows)),
+    ])
 
 # Run the app
 if __name__ == '__main__':

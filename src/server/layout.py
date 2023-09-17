@@ -1,5 +1,5 @@
 # Import necessary libraries
-from dash import dcc, html, Dash
+from dash import dcc, html, Dash, dash_table
 import dash_bootstrap_components as dbc
 
 # Initialize the Dash app
@@ -13,8 +13,37 @@ TOP_STYLE = {
     'width':'100%'
 }
 
-# Define the app layout
+DEFAULT_TICKERS = ['VGT','EDV','QQQ']
+
 app.layout = html.Div([
+    html.Div([
+        dcc.Input(
+            id='enter-column',
+            placeholder='Enter a column name...',
+            value='',
+            style={'padding': 10}
+        ),
+        html.Button('Add Column', id='add-column', n_clicks=0)
+    ], style={'height': 50}),
+
+    dash_table.DataTable(
+        id='ticker-table',
+        columns=[{
+            'name': '{} Holdings'.format(i),
+            'id': i,
+            'deletable': True
+        } for i in DEFAULT_TICKERS],
+        data=[
+            {i: 1 for i in DEFAULT_TICKERS}
+        ],
+        editable=True,
+    ),
+
+    html.Div(id = 'table-display')
+])
+
+# Define the app layout
+""" app.layout = html.Div([
     # Outer container for centering
     html.Div([
         # First section
@@ -51,4 +80,4 @@ app.layout = html.Div([
     # Storage
     dcc.Store(id="distinct-tickers"),
     dcc.Store(id="portfolio-buffer"),
-])
+]) """
